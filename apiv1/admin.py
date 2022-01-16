@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Company, Category, Product
+from .models import Company, Category, Product, Cart, CartItem
 
 
 class CompanyAdmin(admin.ModelAdmin):
@@ -12,6 +13,7 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'name',)
 
 
+
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'is_active', 'price', 'category', 'company', 'uploaded_at', 'updated_at',)
     list_display_links = ('id', 'name',)
@@ -21,6 +23,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_per_page = 25
     search_fields = ('name', 'price')  # this will create a text input for filtering title and price
     actions = ['make_active', 'make_not_active']
+
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
@@ -52,6 +55,18 @@ class ProductAdmin(admin.ModelAdmin):
     thumbnail_preview.allow_tags = True
 
 
+class CartAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'total')
+    list_display_links = ('id', 'user', 'total')
+
+
+class CartItemAdmin(admin.ModelAdmin):
+    list_display = ('id', 'cart', 'product', 'price', 'quantity')
+    list_display_links = ('id', 'price', 'cart', 'product', 'quantity')
+
+
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
+admin.site.register(Cart, CartAdmin)
+admin.site.register(CartItem, CartItemAdmin)
