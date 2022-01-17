@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Company, Category, Product
 from .models import Company, Category, Product, Cart, CartItem
+from rangefilter.filters import DateRangeFilter, DateTimeRangeFilter
 
 
 class CompanyAdmin(admin.ModelAdmin):
@@ -13,17 +14,15 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'name',)
 
 
-
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'is_active', 'price', 'category', 'company', 'uploaded_at', 'updated_at',)
     list_display_links = ('id', 'name',)
     readonly_fields = ('thumbnail_preview',)
     list_editable = ('is_active', 'category', 'company',)
-    list_filter = ('category', 'company', 'is_active',)
+    list_filter = (('uploaded_at', DateRangeFilter), ('updated_at', DateRangeFilter), 'category', 'company', 'is_active',)
     list_per_page = 25
     search_fields = ('name', 'price')  # this will create a text input for filtering title and price
     actions = ['make_active', 'make_not_active']
-
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
@@ -58,6 +57,7 @@ class ProductAdmin(admin.ModelAdmin):
 class CartAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'created_at', 'updated_at',)
     list_display_links = ('id', 'user')
+    list_filter = (('created_at', DateRangeFilter), ('updated_at', DateRangeFilter),)
 
 
 class CartItemAdmin(admin.ModelAdmin):

@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rangefilter',
+
     'ninja_jwt',
     'ninja_extra',
     'apiv1',

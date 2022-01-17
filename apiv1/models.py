@@ -56,6 +56,28 @@ class Product(models.Model):
         self.cartitem_set.all().update(price=self.price)
 
 
+# class Discount(models.Model):
+#     user = models.ManyToManyField(User, on_delete=models.CASCADE, default=User.objects.all())
+#     product = models.ManyToManyField(Product, on_delete=models.CASCADE, default=Product.objects.all())
+#     discount_name = models.CharField(max_length=255)
+#     discount_type = models.CharField(max_length=255)
+#     max_discount = models.IntegerField(default=0)
+#     discount_value = models.IntegerField(default=0)
+#     active = models.BooleanField(default=True)
+#     timed_discount = models.BooleanField(default=False)
+#     active_after = models.DateTimeField(null=True, blank=True)
+#     active_before = models.DateTimeField(null=True, blank=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+#
+#     def __str__(self):
+#         return self.discount_name
+#
+#     class Meta:
+#         verbose_name = 'Discount'
+#         verbose_name_plural = 'Discounts'
+
+
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
