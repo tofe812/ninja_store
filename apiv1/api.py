@@ -26,15 +26,17 @@ api.add_router('/products', product_router)
 def cart(request):
     customer = request.user
     order, created = Cart.objects.get_or_create(user=customer)
+    order_items = CartItem.objects.filter(cart=order)
     list_data = {}
     print(list_data)
     list_data['customer'] = customer.first_name + ' ' + customer.last_name
-    list_data['total_price'] = order.total
+    list_data['total_price'] = 0
     list_data['products'] = {}
 
     count = 0
     for item in order.get_cart():
         count += 1
+        list_data['total_price'] += item.product.price * item.quantity
         list_data['products'][count] = {'item': item.product.name,
                                         'quantity': item.quantity,
                                         'price': item.product.price}

@@ -10,12 +10,20 @@ class Company(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'Company'
+        verbose_name_plural = 'Companies'
+
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
 
 
 class Product(models.Model):
@@ -39,10 +47,17 @@ class Product(models.Model):
             return mark_safe('<img src="{}" width="300" height="300" />'.format(self.image.url))
         return ''
 
+    # override the save of price on all cart items
+    def save(self, *args, **kwargs):
+        self.price = self.price
+        if self.price < 0:
+            self.price = 0
+        super(Product, self).save(*args, **kwargs)
+        self.cartitem_set.all().update(price=self.price)
+
 
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    total = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -83,8 +98,6 @@ class CartItem(models.Model):
     def save(self, *args, **kwargs):
         self.price = self.product.price
         super(CartItem, self).save(*args, **kwargs)
-        # update the total price of the cart
-        self.cart.save()
 
     # get the total price from the product
     def get_total(self):

@@ -56,12 +56,12 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 class CartAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'total')
-    list_display_links = ('id', 'user', 'total')
+    list_display = ('id', 'user', 'created_at', 'updated_at',)
+    list_display_links = ('id', 'user')
 
 
 class CartItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cart', 'product', 'price', 'quantity')
+    list_display = ('id', 'cart', 'product', 'price', 'quantity', 'created_at', 'updated_at',)
     list_display_links = ('id', 'price', 'cart', 'product', 'quantity')
 
 
