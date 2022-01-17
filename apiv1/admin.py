@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Company, Category, Product
-from .models import Company, Category, Product, Cart, CartItem
+from .models import Company, Category, Product, Cart, CartItem, Discount
 from rangefilter.filters import DateRangeFilter, DateTimeRangeFilter
 
 
@@ -65,8 +65,18 @@ class CartItemAdmin(admin.ModelAdmin):
     list_display_links = ('id', 'price', 'cart', 'product', 'quantity')
 
 
+class DiscountAdmin(admin.ModelAdmin):
+    list_display = ('id', 'discount_name', 'discount_type', 'active', 'active_after', 'active_before', 'created_at', 'updated_at',)
+    list_display_links = ('id', 'discount_name', 'discount_type')
+    list_filter = ('discount_type', ('active_after', DateRangeFilter), ('active_before', DateRangeFilter),)
+    list_editable = ('active',)
+
+
 admin.site.register(Company, CompanyAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Cart, CartAdmin)
 admin.site.register(CartItem, CartItemAdmin)
+admin.site.register(Discount, DiscountAdmin)
+
+
