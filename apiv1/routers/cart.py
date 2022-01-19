@@ -2,7 +2,8 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 from ninja.orm import create_schema
 from typing import List
-from apiv1.models import Cart, CartItem
+from apiv1.models import Cart, CartItem, Discount
+import json
 
 
 cart_router = Router(tags=['cart'])
@@ -50,6 +51,54 @@ dis_list = [
 def cart(request):
     if request.user.is_authenticated:
         return cart_get(request)
+    return {'message': 'You are not logged in'}
+
+
+@cart_router.get('/discount/{discount_name}/')
+def discount(request, discount_name: str):
+    if request.user.is_authenticated:
+        customer = request.user
+        try:
+            discount = get_object_or_404(Discount, discount_name=discount_name)
+        except:
+            return {'message': 'Discount not found'}
+        if customer in discount.user.all():
+            order, created = Cart.objects.get_or_create(user=customer)
+            list_data = {}
+            list_data['customer'] = customer.first_name + ' ' + customer.last_name
+            list_data['total_price'] = 0
+            for item in order.get_cart():
+                list_data['total_price'] += float(item.product.price * item.quantity)
+
+            total_price = list_data['total_price']
+
+            if discount.active:
+                print(discount.discount_type)
+                if discount.discount_type == 'Percentage':
+                    discount_value = float(total_price) * float(discount.discount_value) / 100
+                    if discount_value > float(discount.max_discount):
+                        list_data['discount_value'] = round(float(discount.max_discount), 2)
+                    else:
+                        list_data['discount_value'] = round(discount_value, 2)
+                    discount_price = round(float(total_price) - discount_value, 2)
+                    list_data['discount_price'] = discount_price
+                elif discount.discount_type == 'Fixed':
+                    if float(discount.max_discount) >= total_price:
+                        list_data['discount_value'] = int(total_price)
+                        list_data['discount_price'] = 0
+                        list_data['message'] = 'its free'
+                    else:
+                        discount_value = round(discount.discount_value, 2)
+                        list_data['discount_value'] = discount_value
+                        discount_price = round(float(total_price) - float(discount_value), 2)
+                        list_data['discount_price'] = discount_price
+
+                else:
+                    return {'message': 'Discount type not found'}
+                return list_data
+
+            return {'message': 'You already have this discount'}
+        return {'message': 'You are not eligible for this discount'}
     return {'message': 'You are not logged in'}
 
 
