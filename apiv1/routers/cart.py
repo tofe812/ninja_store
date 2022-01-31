@@ -8,6 +8,7 @@ import json
 
 cart_router = Router(tags=['cart'])
 
+
 def cart_get(request):
     customer = request.user
     order, created = Cart.objects.get_or_create(user=customer)
@@ -24,27 +25,7 @@ def cart_get(request):
         list_data['products'][count] = {'item': item.product.name,
                                         'quantity': item.quantity,
                                         'price': item.product.price}
-    print(list_data)
-    print('\n\n\n\n\n')
     return list_data
-
-
-dis_list = [
-    {
-        'discount_name': 'dsp30',
-        'discount_type': 'percentage',
-        'max_discount': 5000,
-        'discount_value': 30,
-        'active': True,
-    },
-    {
-        'discount_name': 'dsf3000',
-        'discount_type': 'fixed',
-        'max_discount': 3000,
-        'discount_value': 3000,
-        'active': True,
-    },
-]
 
 
 @cart_router.get('/cart/')
@@ -58,10 +39,13 @@ def cart(request):
 def discount(request, discount_name: str):
     if request.user.is_authenticated:
         customer = request.user
+        # check if the discount is valid or not
         try:
             discount = get_object_or_404(Discount, discount_name=discount_name)
         except:
             return {'message': 'Discount not found'}
+
+        #check if customer is eligible for discount
         if customer in discount.user.all():
             order, created = Cart.objects.get_or_create(user=customer)
             list_data = {}
@@ -70,6 +54,8 @@ def discount(request, discount_name: str):
             discount_only = 0
             final_price = 0
             products = discount.product.all()
+
+            # check if product is discount eligible
             for item in order.get_cart():
                 total_price += float(item.product.price * item.quantity)
                 for product in products:
@@ -80,8 +66,11 @@ def discount(request, discount_name: str):
 
             list_data['total_price'] = total_price
 
+            # check if discount is active or not
             if discount.active:
                 print(discount.discount_type)
+
+                # check if discount is fixed or percentage based
                 if discount.discount_type == 'Percentage':
                     discount_value = float(discount_only) * float(discount.discount_value) / 100
                     if discount_value > float(discount.max_discount):
@@ -111,53 +100,70 @@ def discount(request, discount_name: str):
     return {'message': 'You are not logged in'}
 
 
-# old method
-@cart_router.get('/checkout/', deprecated=True)
-def checkout(request):
-    if request.user.is_authenticated:
-        customer = request.user
-        order, created = Cart.objects.get_or_create(user=customer)
-        list_data = {}
-        list_data['customer'] = customer.first_name + ' ' + customer.last_name
-        list_data['total_price'] = 0
-        for item in order.get_cart():
-            list_data['total_price'] += item.product.price * item.quantity
+dis_list = [
+    {
+        'discount_name': 'dsp30',
+        'discount_type': 'percentage',
+        'max_discount': 5000,
+        'discount_value': 30,
+        'active': True,
+    },
+    {
+        'discount_name': 'dsf3000',
+        'discount_type': 'fixed',
+        'max_discount': 3000,
+        'discount_value': 3000,
+        'active': True,
+    },
+]
 
-        total_price = list_data['total_price']
-        get_discount_id = 0
-
-        discount = dis_list[get_discount_id]
-        list_data['discount'] = discount
-
-        discount_price = 0
-        discount_value = 0
-
-        # check if discount is active
-        if discount['active']:
-            # check if discount is fixed or percentage
-            if discount['discount_type'] == 'percentage':
-                discount_value = float(total_price) * float(discount['discount_value']) / 100
-                # check if discount is less than max discount
-                if discount_value > float(discount['max_discount']):
-                    list_data['discount_value'] = round(float(discount['max_discount']), 2)
-                else:
-                    list_data['discount_value'] = round(discount_value, 2)
-                discount_price = round(float(total_price) - discount_value, 2)
-                list_data['discount_price'] = discount_price
-            elif discount['discount_type'] == 'fixed':
-                # check if discount is less than max discount
-                if float(discount['discount_value']) >= total_price:
-                    list_data['discount_value'] = int(total_price)
-                    list_data['discount_price'] = 0
-
-                else:
-                    discount_value = round(discount['discount_value'], 2)
-                    print(discount_value)
-                    list_data['discount_value'] = discount_value
-                    discount_price = round(float(total_price) - float(discount_value), 2)
-                    list_data['discount_price'] = discount_price
-        return list_data
-    return {'message': 'You are not logged in'}
+# # old method
+# @cart_router.get('/checkout/', deprecated=True)
+# def checkout(request):
+#     if request.user.is_authenticated:
+#         customer = request.user
+#         order, created = Cart.objects.get_or_create(user=customer)
+#         list_data = {}
+#         list_data['customer'] = customer.first_name + ' ' + customer.last_name
+#         list_data['total_price'] = 0
+#         for item in order.get_cart():
+#             list_data['total_price'] += item.product.price * item.quantity
+#
+#         total_price = list_data['total_price']
+#         get_discount_id = 0
+#
+#         discount = dis_list[get_discount_id]
+#         list_data['discount'] = discount
+#
+#         discount_price = 0
+#         discount_value = 0
+#
+#         # check if discount is active
+#         if discount['active']:
+#             # check if discount is fixed or percentage
+#             if discount['discount_type'] == 'percentage':
+#                 discount_value = float(total_price) * float(discount['discount_value']) / 100
+#                 # check if discount is less than max discount
+#                 if discount_value > float(discount['max_discount']):
+#                     list_data['discount_value'] = round(float(discount['max_discount']), 2)
+#                 else:
+#                     list_data['discount_value'] = round(discount_value, 2)
+#                 discount_price = round(float(total_price) - discount_value, 2)
+#                 list_data['discount_price'] = discount_price
+#             elif discount['discount_type'] == 'fixed':
+#                 # check if discount is less than max discount
+#                 if float(discount['discount_value']) >= total_price:
+#                     list_data['discount_value'] = int(total_price)
+#                     list_data['discount_price'] = 0
+#
+#                 else:
+#                     discount_value = round(discount['discount_value'], 2)
+#                     print(discount_value)
+#                     list_data['discount_value'] = discount_value
+#                     discount_price = round(float(total_price) - float(discount_value), 2)
+#                     list_data['discount_price'] = discount_price
+#         return list_data
+#     return {'message': 'You are not logged in'}
 
 
 
